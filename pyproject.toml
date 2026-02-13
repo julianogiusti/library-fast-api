@@ -1,0 +1,11 @@
+[project]
+name = "library-api"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.129.0",
+    "sqlmodel>=0.0.33",
+    "uvicorn>=0.40.0",
+]
