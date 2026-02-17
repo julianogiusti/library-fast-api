@@ -1,7 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
+
 from app.core.database import get_session
-from .model import Book, BookCreate, BookUpdate
+
+from .model import Book, BookCreate, BookUpdate, Page
 from .service import BookService
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -14,9 +16,14 @@ def create(book: BookCreate, session: Session = Depends(get_session)):
     return service.create_book(session, book)
 
 
-@router.get("/", response_model=list[Book])
-def list_books(session: Session = Depends(get_session)):
-    return service.list_books(session)
+@router.get("/", response_model=Page[Book])
+def list_books(
+    session: Session = Depends(get_session),
+    page: int = Query(1, ge=1),
+    size: int = Query(10, ge=1, le=100)
+):
+    return service.list_books_paginated(session, page, size)
+
 
 
 @router.get("/{book_id}", response_model=Book)
