@@ -1,8 +1,6 @@
-from typing import Optional
-
 from sqlmodel import Session, func, select
 
-from .model import Book, ReadingStatus
+from .model import Book, BookFilters
 
 
 class BookRepository:
@@ -22,29 +20,29 @@ class BookRepository:
         *,
         page: int,
         size: int,
-        status: Optional[ReadingStatus] = None,
-        author: Optional[str] = None,
-        title: Optional[str] = None,
-        order_by: str = "created_at",
-        order: str = "desc",
+        filters: BookFilters,
     ):
         offset = (page - 1) * size
 
+        conditions = []
+
+        if filters.status:
+            conditions.append(Book.status == filters.status)
+
+        if filters.author:
+            conditions.append(Book.author.ilike(f"%{filters.author}%"))
+
+        if filters.title:
+            conditions.append(Book.title.ilike(f"%{filters.title}%"))
+
+        # Query base (sem paginação)
         statement = select(Book)
-        count_statement = select(func.count()).select_from(Book)
 
-        # Filtros
-        if status:
-            statement = statement.where(Book.status == status)
-            count_statement = count_statement.where(Book.status == status)
+        if conditions:
+            statement = statement.where(*conditions)
 
-        if author:
-            statement = statement.where(Book.author.ilike(f"%{author}%"))
-            count_statement = count_statement.where(Book.author.ilike(f"%{author}%"))
-
-        if title:
-            statement = statement.where(Book.title.ilike(f"%{title}%"))
-            count_statement = count_statement.where(Book.title.ilike(f"%{title}%"))
+        # Contagem total usando subquery
+        total = session.exec(select(func.count()).select_from(statement.subquery())).one()
 
         # Ordenação
         allowed_order_fields = {
@@ -55,12 +53,9 @@ class BookRepository:
             "end_date": Book.end_date,
         }
 
-        column = allowed_order_fields.get(order_by, Book.created_at)
+        column = allowed_order_fields.get(filters.order_by, Book.created_at)
 
-        if order not in {"asc", "desc"}:
-            order = "desc"
-
-        if order == "desc":
+        if filters.order == "desc":
             statement = statement.order_by(column.desc())
         else:
             statement = statement.order_by(column.asc())
@@ -69,12 +64,11 @@ class BookRepository:
         statement = statement.offset(offset).limit(size)
 
         items = session.exec(statement).all()
-        total = session.exec(count_statement).one()
 
         return items, total
 
 
-    def get_by_id(self, session: Session, book_id: int) -> Optional[Book]:
+    def get_by_id(self, session: Session, book_id: int) -> Book | None:
         return session.get(Book, book_id)
 
     def update(self, session: Session, book: Book) -> Book:

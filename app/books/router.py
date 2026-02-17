@@ -1,11 +1,9 @@
-from typing import Optional
-
 from fastapi import APIRouter, Depends, Query
 from sqlmodel import Session
 
 from app.core.database import get_session
 
-from .model import Book, BookCreate, BookUpdate, Page, ReadingStatus
+from .model import Book, BookCreate, BookFilters, BookUpdate, Page
 from .service import BookService
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -23,21 +21,13 @@ def list_books(
     session: Session = Depends(get_session),
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
-    status: Optional[ReadingStatus] = None,
-    author: Optional[str] = Query(None),
-    title: Optional[str] = Query(None),
-    order_by: str = Query("created_at"),
-    order: str = Query("desc", pattern="^(asc|desc)$"),
+    filters: BookFilters = Depends(),
 ):
     return service.list_books_paginated(
         session=session,
         page=page,
         size=size,
-        status=status,
-        author=author,
-        title=title,
-        order_by=order_by,
-        order=order,
+        filters=filters,
     )
 
 

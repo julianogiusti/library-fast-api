@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from enum import Enum
 from math import ceil
-from typing import Generic, Optional, TypeVar
+from typing import Generic, Literal, Optional, TypeVar
 
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
@@ -36,6 +36,14 @@ class BookUpdate(SQLModel):
     status: Optional[ReadingStatus] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
+
+
+class BookFilters(BaseModel):
+    status: Optional[ReadingStatus] = None
+    author: Optional[str] = None
+    title: Optional[str] = None
+    order_by: Literal["title", "author", "created_at", "start_date", "end_date"] = "created_at"
+    order: Literal["asc", "desc"] = "desc"
 
 
 T = TypeVar("T")
