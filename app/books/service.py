@@ -1,10 +1,12 @@
+from typing import Optional
+
 from fastapi import HTTPException
 from sqlmodel import Session
 
 from app.core.exceptions import NotFoundException
 
 from .model import Book, BookCreate, BookUpdate, Page
-from .repository import BookRepository
+from .repository import BookRepository, ReadingStatus
 
 
 class BookService:
@@ -19,19 +21,36 @@ class BookService:
     def list_books(self, session: Session) -> list[Book]:
         return self.repository.list(session)
 
-    def list_books_paginated(self, session: Session, page: int, size: int) -> Page[Book]:
+    def list_books_paginated(
+        self,
+        session: Session,
+        page: int,
+        size: int,
+        status: Optional[ReadingStatus] = None,
+        author: Optional[str] = None,
+        title: Optional[str] = None,
+        order_by: str = "created_at",
+        order: str = "desc",
+    ) -> Page[Book]:
+
         items, total = self.repository.list_paginated(
-            session,
+            session=session,
             page=page,
-            size=size
+            size=size,
+            status=status,
+            author=author,
+            title=title,
+            order_by=order_by,
+            order=order,
         )
 
         return Page.create(
             items=items,
             total=total,
             page=page,
-            size=size
+            size=size,
         )
+
 
     def get_book(self, session: Session, book_id: int) -> Book:
         book = self.repository.get_by_id(session, book_id)
