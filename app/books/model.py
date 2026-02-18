@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from enum import Enum
 from math import ceil
 from typing import Generic, Literal, Optional, TypeVar
@@ -23,7 +23,7 @@ class BookBase(SQLModel):
 
 class Book(BookBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
 class BookCreate(BookBase):
