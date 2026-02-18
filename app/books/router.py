@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
+from fastapi.responses import Response
 from sqlmodel import Session
 
 from app.core.database import get_session
@@ -11,7 +12,7 @@ router = APIRouter(prefix="/books", tags=["Books"])
 service = BookService()
 
 
-@router.post("/", response_model=Book)
+@router.post("/", response_model=Book, status_code=status.HTTP_201_CREATED)
 def create(book: BookCreate, session: Session = Depends(get_session)):
     return service.create_book(session, book)
 
@@ -37,11 +38,13 @@ def get_book(book_id: int, session: Session = Depends(get_session)):
 
 
 @router.put("/{book_id}", response_model=Book)
-def update_book(book_id: int, book_update: BookUpdate, session: Session = Depends(get_session)):
+def update_book(
+    book_id: int, book_update: BookUpdate, session: Session = Depends(get_session)
+):
     return service.update_book(session, book_id, book_update)
 
 
-@router.delete("/{book_id}")
+@router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_book(book_id: int, session: Session = Depends(get_session)):
     service.delete_book(session, book_id)
-    return {"detail": "Book deleted successfully"}
+    return Response(status_code=status.HTTP_204_NO_CONTENT)

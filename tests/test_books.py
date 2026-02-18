@@ -10,7 +10,7 @@ def test_should_create_book_successfully(client):
         },
     )
 
-    assert response.status_code == HTTPStatus.OK
+    assert response.status_code == HTTPStatus.CREATED
 
     data = response.json()
 
@@ -160,6 +160,7 @@ def test_should_order_books_by_title_asc(client):
 
     response = client.get("/books/?order_by=title&order=asc")
 
+    assert response.status_code == HTTPStatus.OK
     data = response.json()
 
     titles = [item["title"] for item in data["items"]]
@@ -170,3 +171,18 @@ def test_should_return_404_when_book_not_found(client):
     response = client.get("/books/999")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
+
+def test_should_delete_book_successfully(client):
+    create_response = client.post(
+        "/books/",
+        json={"title": "Delete Me", "author": "Author", "status": "TO_READ"},
+    )
+    assert create_response.status_code == HTTPStatus.CREATED
+    book_id = create_response.json()["id"]
+
+    delete_response = client.delete(f"/books/{book_id}")
+    assert delete_response.status_code == HTTPStatus.NO_CONTENT
+    assert delete_response.text == ""  # 204 sem body
+
+    get_response = client.get(f"/books/{book_id}")
+    assert get_response.status_code == HTTPStatus.NOT_FOUND
