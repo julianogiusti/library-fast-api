@@ -1,4 +1,3 @@
-from fastapi import HTTPException
 from sqlmodel import Session
 
 from app.core.exceptions import NotFoundException
@@ -8,7 +7,6 @@ from .repository import BookRepository
 
 
 class BookService:
-
     def __init__(self):
         self.repository = BookRepository()
 
@@ -41,7 +39,6 @@ class BookService:
             size=size,
         )
 
-
     def get_book(self, session: Session, book_id: int) -> Book:
         book = self.repository.get_by_id(session, book_id)
 
@@ -50,11 +47,13 @@ class BookService:
 
         return book
 
-    def update_book(self, session: Session, book_id: int, book_update: BookUpdate) -> Book:
+    def update_book(
+        self, session: Session, book_id: int, book_update: BookUpdate
+    ) -> Book:
         book = self.repository.get_by_id(session, book_id)
 
         if not book:
-            raise HTTPException(status_code=404, detail="Book not found")
+            raise NotFoundException("Book not found")
 
         update_data = book_update.model_dump(exclude_unset=True)
 
@@ -67,6 +66,6 @@ class BookService:
         book = self.repository.get_by_id(session, book_id)
 
         if not book:
-            raise HTTPException(status_code=404, detail="Book not found")
+            raise NotFoundException("Book not found")
 
         self.repository.delete(session, book)
