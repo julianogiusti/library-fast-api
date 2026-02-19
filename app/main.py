@@ -1,17 +1,15 @@
-from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
-
-from fastapi.responses import JSONResponse
-from app.core.database import create_db_and_tables
-from app.books.router import router as books_router
-
-from fastapi.exceptions import RequestValidationError
-from starlette.exceptions import HTTPException as StarletteHTTPException
 from http import HTTPStatus
 
-from app.core.exceptions import AppException
-from app.core.error_schema import ErrorResponse, utc_now_iso
+from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
+from fastapi.responses import JSONResponse
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from app.books.router import router as books_router
+from app.core.database import create_db_and_tables
+from app.core.error_schema import ErrorResponse, utc_now_iso
+from app.core.exceptions import AppException
 
 
 @asynccontextmanager
@@ -19,7 +17,9 @@ async def lifespan(app: FastAPI):
     create_db_and_tables()
     yield
 
+
 app = FastAPI(lifespan=lifespan)
+
 
 @app.exception_handler(AppException)
 async def app_exception_handler(request: Request, exc: AppException):
@@ -68,7 +68,10 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         status=HTTPStatus.INTERNAL_SERVER_ERROR,
         timestamp=utc_now_iso(),
     )
-    return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=payload.model_dump())
+    return JSONResponse(
+        status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=payload.model_dump()
+    )
+
 
 @app.get("/health")
 def health_check():
