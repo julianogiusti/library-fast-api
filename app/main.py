@@ -1,10 +1,17 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from contextlib import asynccontextmanager
 
 from fastapi.responses import JSONResponse
 from app.core.database import create_db_and_tables
 from app.books.router import router as books_router
-from app.core.exceptions import NotFoundException
+
+from fastapi.exceptions import RequestValidationError
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from http import HTTPStatus
+
+from app.core.exceptions import AppException
+from app.core.error_schema import ErrorResponse, utc_now_iso
+
 
 
 @asynccontextmanager
@@ -14,13 +21,54 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 
-@app.exception_handler(NotFoundException)
-async def not_found_exception_handler(request, exc: NotFoundException):
-    return JSONResponse(
-        status_code=404,
-        content={"detail": exc.message},
+@app.exception_handler(AppException)
+async def app_exception_handler(request: Request, exc: AppException):
+    payload = ErrorResponse(
+        type=type(exc).__name__,
+        title=exc.title,
+        detail=exc.message,
+        status=exc.status_code,
+        timestamp=utc_now_iso(),
     )
+    return JSONResponse(status_code=exc.status_code, content=payload.model_dump())
 
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    payload = ErrorResponse(
+        type=type(exc).__name__,
+        title="Validation error",
+        detail="Request data is invalid.",
+        status=HTTPStatus.UNPROCESSABLE_ENTITY,
+        timestamp=utc_now_iso(),
+    )
+    content = payload.model_dump()
+    content["errors"] = exc.errors()
+    return JSONResponse(status_code=HTTPStatus.UNPROCESSABLE_ENTITY, content=content)
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_exception_handler(request: Request, exc: StarletteHTTPException):
+    payload = ErrorResponse(
+        type=type(exc).__name__,
+        title="HTTP error",
+        detail=str(exc.detail),
+        status=exc.status_code,
+        timestamp=utc_now_iso(),
+    )
+    return JSONResponse(status_code=exc.status_code, content=payload.model_dump())
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception):
+    payload = ErrorResponse(
+        type=type(exc).__name__,
+        title="Internal server error",
+        detail="An unexpected error occurred.",
+        status=HTTPStatus.INTERNAL_SERVER_ERROR,
+        timestamp=utc_now_iso(),
+    )
+    return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=payload.model_dump())
 
 @app.get("/health")
 def health_check():
