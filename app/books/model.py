@@ -1,13 +1,13 @@
-from datetime import date, datetime, timezone
-from enum import Enum
+from datetime import UTC, date, datetime
+from enum import StrEnum
 from math import ceil
-from typing import Generic, Literal, Optional, TypeVar
+from typing import Literal
 
 from pydantic import BaseModel
 from sqlmodel import Field, SQLModel
 
 
-class ReadingStatus(str, Enum):
+class ReadingStatus(StrEnum):
     TO_READ = "TO_READ"
     READING = "READING"
     DONE = "DONE"
@@ -17,13 +17,13 @@ class BookBase(SQLModel):
     title: str
     author: str
     status: ReadingStatus = ReadingStatus.TO_READ
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class Book(BookBase, table=True):
-    id: Optional[int] = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    id: int | None = Field(default=None, primary_key=True)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
 
 
 class BookCreate(BookBase):
@@ -31,25 +31,22 @@ class BookCreate(BookBase):
 
 
 class BookUpdate(SQLModel):
-    title: Optional[str] = None
-    author: Optional[str] = None
-    status: Optional[ReadingStatus] = None
-    start_date: Optional[date] = None
-    end_date: Optional[date] = None
+    title: str | None = None
+    author: str | None = None
+    status: ReadingStatus | None = None
+    start_date: date | None = None
+    end_date: date | None = None
 
 
 class BookFilters(BaseModel):
-    status: Optional[ReadingStatus] = None
-    author: Optional[str] = None
-    title: Optional[str] = None
+    status: ReadingStatus | None = None
+    author: str | None = None
+    title: str | None = None
     order_by: Literal["title", "author", "created_at", "start_date", "end_date"] = "created_at"
     order: Literal["asc", "desc"] = "desc"
 
 
-T = TypeVar("T")
-
-
-class Page(BaseModel, Generic[T]):
+class Page[T](BaseModel):
     items: list[T]
     total: int
     page: int

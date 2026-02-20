@@ -68,9 +68,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception):
         status=HTTPStatus.INTERNAL_SERVER_ERROR,
         timestamp=utc_now_iso(),
     )
-    return JSONResponse(
-        status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=payload.model_dump()
-    )
+    return JSONResponse(status_code=HTTPStatus.INTERNAL_SERVER_ERROR, content=payload.model_dump())
 
 
 @app.get("/health")

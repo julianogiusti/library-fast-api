@@ -67,7 +67,6 @@ class BookRepository:
 
         return items, total
 
-
     def get_by_id(self, session: Session, book_id: int) -> Book | None:
         return session.get(Book, book_id)
 

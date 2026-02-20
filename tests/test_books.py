@@ -4,11 +4,7 @@ from http import HTTPStatus
 def test_should_create_book_successfully(client):
     response = client.post(
         "/books/",
-        json={
-            "title": "Clean Code",
-            "author": "Robert C. Martin",
-            "status": "TO_READ"
-        },
+        json={"title": "Clean Code", "author": "Robert C. Martin", "status": "TO_READ"},
     )
 
     assert response.status_code == HTTPStatus.CREATED
@@ -18,6 +14,7 @@ def test_should_create_book_successfully(client):
     assert data["title"] == "Clean Code"
     assert data["author"] == "Robert C. Martin"
     assert data["status"] == "TO_READ"
+
 
 def test_should_return_empty_list_when_no_books(client):
     response = client.get("/books/")
@@ -29,14 +26,11 @@ def test_should_return_empty_list_when_no_books(client):
     assert data["items"] == []
     assert data["total"] == 0
 
+
 def test_should_list_created_book(client):
     client.post(
         "/books/",
-        json={
-            "title": "Clean Architecture",
-            "author": "Robert C. Martin",
-            "status": "TO_READ"
-        },
+        json={"title": "Clean Architecture", "author": "Robert C. Martin", "status": "TO_READ"},
     )
 
     response = client.get("/books/")
@@ -49,16 +43,13 @@ def test_should_list_created_book(client):
     assert len(data["items"]) == 1
     assert data["items"][0]["title"] == "Clean Architecture"
 
+
 def test_should_paginate_books(client):
     # cria 3 livros
     for i in range(3):
         client.post(
             "/books/",
-            json={
-                "title": f"Book {i}",
-                "author": "Author",
-                "status": "TO_READ"
-            },
+            json={"title": f"Book {i}", "author": "Author", "status": "TO_READ"},
         )
 
     response = client.get("/books/?size=2&page=1")
@@ -69,16 +60,13 @@ def test_should_paginate_books(client):
     assert data["total"] == 3
     assert len(data["items"]) == 2
 
+
 def test_should_return_second_page_correctly(client):
     # cria 3 livros
     for i in range(3):
         client.post(
             "/books/",
-            json={
-                "title": f"Book {i}",
-                "author": "Author",
-                "status": "TO_READ"
-            },
+            json={"title": f"Book {i}", "author": "Author", "status": "TO_READ"},
         )
 
     # página 1
@@ -95,23 +83,16 @@ def test_should_return_second_page_correctly(client):
     assert data_page_2["total"] == 3
     assert len(data_page_2["items"]) == 1
 
+
 def test_should_filter_books_by_status(client):
     client.post(
         "/books/",
-        json={
-            "title": "Book 1",
-            "author": "Author",
-            "status": "TO_READ"
-        },
+        json={"title": "Book 1", "author": "Author", "status": "TO_READ"},
     )
 
     client.post(
         "/books/",
-        json={
-            "title": "Book 2",
-            "author": "Author",
-            "status": "READING"
-        },
+        json={"title": "Book 2", "author": "Author", "status": "READING"},
     )
 
     response = client.get("/books/?status=TO_READ")
@@ -122,23 +103,16 @@ def test_should_filter_books_by_status(client):
     assert data["total"] == 1
     assert data["items"][0]["status"] == "TO_READ"
 
+
 def test_should_filter_books_by_title(client):
     client.post(
         "/books/",
-        json={
-            "title": "Clean Code",
-            "author": "Uncle Bob",
-            "status": "TO_READ"
-        },
+        json={"title": "Clean Code", "author": "Uncle Bob", "status": "TO_READ"},
     )
 
     client.post(
         "/books/",
-        json={
-            "title": "Domain Driven Design",
-            "author": "Eric Evans",
-            "status": "TO_READ"
-        },
+        json={"title": "Domain Driven Design", "author": "Eric Evans", "status": "TO_READ"},
     )
 
     response = client.get("/books/?title=Clean")
@@ -148,6 +122,7 @@ def test_should_filter_books_by_title(client):
 
     assert data["total"] == 1
     assert "Clean" in data["items"][0]["title"]
+
 
 def test_should_order_books_by_title_asc(client):
     client.post(
@@ -168,10 +143,12 @@ def test_should_order_books_by_title_asc(client):
 
     assert titles == sorted(titles)
 
+
 def test_should_return_404_when_book_not_found(client):
     response = client.get("/books/999")
 
     assert response.status_code == HTTPStatus.NOT_FOUND
+
 
 def test_should_delete_book_successfully(client):
     create_response = client.post(

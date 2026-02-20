@@ -5,9 +5,7 @@ class AppException(Exception):
     status_code: int = HTTPStatus.BAD_REQUEST
     title: str = "Application error"
 
-    def __init__(
-        self, message: str, *, status_code: int | None = None, title: str | None = None
-    ):
+    def __init__(self, message: str, *, status_code: int | None = None, title: str | None = None):
         self.message = message
         if status_code is not None:
             self.status_code = int(status_code)

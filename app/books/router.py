@@ -66,9 +66,7 @@ def get_book(book_id: int, session: Session = Depends(get_session)):
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
-def update_book(
-    book_id: int, book_update: BookUpdate, session: Session = Depends(get_session)
-):
+def update_book(book_id: int, book_update: BookUpdate, session: Session = Depends(get_session)):
     return service.update_book(session, book_id, book_update)
 
 

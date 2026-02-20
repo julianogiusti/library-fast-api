@@ -47,9 +47,7 @@ class BookService:
 
         return book
 
-    def update_book(
-        self, session: Session, book_id: int, book_update: BookUpdate
-    ) -> Book:
+    def update_book(self, session: Session, book_id: int, book_update: BookUpdate) -> Book:
         book = self.repository.get_by_id(session, book_id)
 
         if not book:

@@ -228,3 +228,41 @@ This project demonstrates:
 - PostgreSQL support
 - Deployment configuration
 - Frontend integration (React)
+
+---
+
+## Code Quality (Ruff + pre-commit)
+
+This project uses [Ruff](https://docs.astral.sh/ruff/) for linting and formatting, and [pre-commit](https://pre-commit.com/) to automatically run checks before commits.
+
+### Install git hooks
+
+```bash
+uv run pre-commit install
+```
+
+### Run hooks on all files (without committing)
+
+```bash
+uv run pre-commit run --all-files
+```
+
+### Run hooks on specific files
+
+```bash
+uv run pre-commit run --files <file>
+```
+
+### Run a specific hook
+
+```bash
+uv run pre-commit run <hook_id> --all-files
+uv run pre-commit run <hook_id> --files <file>
+```
+
+### Run Ruff manually
+
+```bash
+uv run ruff check . --fix
+uv run ruff format .
+```

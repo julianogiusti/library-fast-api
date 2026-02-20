@@ -1,10 +1,10 @@
 import pytest
-from sqlalchemy.pool import StaticPool
-from sqlmodel import SQLModel, create_engine, Session
 from fastapi.testclient import TestClient
+from sqlalchemy.pool import StaticPool
+from sqlmodel import Session, SQLModel, create_engine
 
-from app.main import app
 from app.core.database import get_session
+from app.main import app
 
 # Banco em memória
 TEST_DATABASE_URL = "sqlite:///:memory:"
@@ -14,6 +14,7 @@ engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
+
 
 # Cria as tabelas antes de cada teste
 @pytest.fixture(name="session")
