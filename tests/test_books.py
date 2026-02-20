@@ -1,7 +1,5 @@
 from http import HTTPStatus
 
-def test_broken_to_check_github_actions(client):
-    assert 1 == 2
 
 def test_should_create_book_successfully(client):
     response = client.post(
