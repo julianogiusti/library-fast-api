@@ -10,6 +10,7 @@ from app.books.router import router as books_router
 from app.core.database import create_db_and_tables
 from app.core.error_schema import ErrorResponse, utc_now_iso
 from app.core.exceptions import AppException
+from app.users.router import router as users_router
 
 
 @asynccontextmanager
@@ -77,3 +78,4 @@ def health_check():
 
 
 app.include_router(books_router)
+app.include_router(users_router)

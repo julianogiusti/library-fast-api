@@ -4,6 +4,8 @@ from sqlmodel import Session
 
 from app.core.database import get_session
 from app.core.error_schema import ErrorResponse
+from app.users.dependencies import get_current_user
+from app.users.model import User
 
 from .model import Book, BookCreate, BookFilters, BookUpdate, Page
 from .service import BookService
@@ -21,7 +23,11 @@ service = BookService()
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
-def create(book: BookCreate, session: Session = Depends(get_session)):
+def create(
+    book: BookCreate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     return service.create_book(session, book)
 
 
@@ -66,7 +72,12 @@ def get_book(book_id: int, session: Session = Depends(get_session)):
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
-def update_book(book_id: int, book_update: BookUpdate, session: Session = Depends(get_session)):
+def update_book(
+    book_id: int,
+    book_update: BookUpdate,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     return service.update_book(session, book_id, book_update)
 
 
@@ -79,6 +90,10 @@ def update_book(book_id: int, book_update: BookUpdate, session: Session = Depend
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
-def delete_book(book_id: int, session: Session = Depends(get_session)):
+def delete_book(
+    book_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
     service.delete_book(session, book_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

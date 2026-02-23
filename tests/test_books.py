@@ -1,10 +1,11 @@
 from http import HTTPStatus
 
 
-def test_should_create_book_successfully(client):
+def test_should_create_book_successfully(client, auth_headers):
     response = client.post(
         "/books/",
         json={"title": "Clean Code", "author": "Robert C. Martin", "status": "TO_READ"},
+        headers=auth_headers,
     )
 
     assert response.status_code == HTTPStatus.CREATED
@@ -27,10 +28,11 @@ def test_should_return_empty_list_when_no_books(client):
     assert data["total"] == 0
 
 
-def test_should_list_created_book(client):
+def test_should_list_created_book(client, auth_headers):
     client.post(
         "/books/",
         json={"title": "Clean Architecture", "author": "Robert C. Martin", "status": "TO_READ"},
+        headers=auth_headers,
     )
 
     response = client.get("/books/")
@@ -44,12 +46,13 @@ def test_should_list_created_book(client):
     assert data["items"][0]["title"] == "Clean Architecture"
 
 
-def test_should_paginate_books(client):
+def test_should_paginate_books(client, auth_headers):
     # cria 3 livros
     for i in range(3):
         client.post(
             "/books/",
             json={"title": f"Book {i}", "author": "Author", "status": "TO_READ"},
+            headers=auth_headers,
         )
 
     response = client.get("/books/?size=2&page=1")
@@ -61,12 +64,13 @@ def test_should_paginate_books(client):
     assert len(data["items"]) == 2
 
 
-def test_should_return_second_page_correctly(client):
+def test_should_return_second_page_correctly(client, auth_headers):
     # cria 3 livros
     for i in range(3):
         client.post(
             "/books/",
             json={"title": f"Book {i}", "author": "Author", "status": "TO_READ"},
+            headers=auth_headers,
         )
 
     # página 1
@@ -84,10 +88,11 @@ def test_should_return_second_page_correctly(client):
     assert len(data_page_2["items"]) == 1
 
 
-def test_should_filter_books_by_status(client):
+def test_should_filter_books_by_status(client, auth_headers):
     client.post(
         "/books/",
         json={"title": "Book 1", "author": "Author", "status": "TO_READ"},
+        headers=auth_headers,
     )
 
     client.post(
@@ -104,10 +109,11 @@ def test_should_filter_books_by_status(client):
     assert data["items"][0]["status"] == "TO_READ"
 
 
-def test_should_filter_books_by_title(client):
+def test_should_filter_books_by_title(client, auth_headers):
     client.post(
         "/books/",
         json={"title": "Clean Code", "author": "Uncle Bob", "status": "TO_READ"},
+        headers=auth_headers,
     )
 
     client.post(
@@ -150,15 +156,16 @@ def test_should_return_404_when_book_not_found(client):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_should_delete_book_successfully(client):
+def test_should_delete_book_successfully(client, auth_headers):
     create_response = client.post(
         "/books/",
         json={"title": "Delete Me", "author": "Author", "status": "TO_READ"},
+        headers=auth_headers,
     )
     assert create_response.status_code == HTTPStatus.CREATED
     book_id = create_response.json()["id"]
 
-    delete_response = client.delete(f"/books/{book_id}")
+    delete_response = client.delete(f"/books/{book_id}", headers=auth_headers)
     assert delete_response.status_code == HTTPStatus.NO_CONTENT
     assert delete_response.text == ""  # 204 sem body
 
