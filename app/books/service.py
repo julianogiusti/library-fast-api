@@ -1,6 +1,7 @@
 from sqlmodel import Session
 
 from app.core.exceptions import NotFoundException
+from app.users.model import User
 
 from .model import Book, BookCreate, BookFilters, BookUpdate, Page
 from .repository import BookRepository
@@ -10,12 +11,15 @@ class BookService:
     def __init__(self):
         self.repository = BookRepository()
 
-    def create_book(self, session: Session, book_create: BookCreate) -> Book:
-        book = Book.model_validate(book_create)
+    def create_book(self, session: Session, book_create: BookCreate, user: User) -> Book:
+        book = Book(
+            **book_create.model_dump(),
+            user_id=user.id,
+        )
         return self.repository.create(session, book)
 
-    def list_books(self, session: Session) -> list[Book]:
-        return self.repository.list(session)
+    def list_books(self, session: Session, user: User) -> list[Book]:
+        return self.repository.list(session, user_id=user.id)
 
     def list_books_paginated(
         self,
@@ -23,6 +27,7 @@ class BookService:
         page: int,
         size: int,
         filters: BookFilters,
+        user: User,
     ) -> Page[Book]:
 
         items, total = self.repository.list_paginated(
@@ -30,6 +35,7 @@ class BookService:
             page=page,
             size=size,
             filters=filters,
+            user_id=user.id,
         )
 
         return Page.create(
@@ -39,16 +45,18 @@ class BookService:
             size=size,
         )
 
-    def get_book(self, session: Session, book_id: int) -> Book:
-        book = self.repository.get_by_id(session, book_id)
+    def get_book(self, session: Session, book_id: int, user: User) -> Book:
+        book = self.repository.get_by_id(session, book_id, user_id=user.id)
 
         if not book:
             raise NotFoundException("Book not found")
 
         return book
 
-    def update_book(self, session: Session, book_id: int, book_update: BookUpdate) -> Book:
-        book = self.repository.get_by_id(session, book_id)
+    def update_book(
+        self, session: Session, book_id: int, book_update: BookUpdate, user: User
+    ) -> Book:
+        book = self.repository.get_by_id(session, book_id, user_id=user.id)
 
         if not book:
             raise NotFoundException("Book not found")
@@ -60,8 +68,8 @@ class BookService:
 
         return self.repository.update(session, book)
 
-    def delete_book(self, session: Session, book_id: int) -> None:
-        book = self.repository.get_by_id(session, book_id)
+    def delete_book(self, session: Session, book_id: int, user: User) -> None:
+        book = self.repository.get_by_id(session, book_id, user_id=user.id)
 
         if not book:
             raise NotFoundException("Book not found")

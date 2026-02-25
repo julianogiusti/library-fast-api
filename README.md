@@ -224,7 +224,6 @@ This project demonstrates:
 
 ## Future Improvements
 
-- Authentication and authorization
 - PostgreSQL support
 - Deployment configuration
 - Frontend integration (React)

@@ -1,9 +1,10 @@
-from datetime import UTC, date, datetime
+from datetime import date, datetime
 from enum import StrEnum
 from math import ceil
 from typing import Literal
 
 from pydantic import BaseModel
+from sqlalchemy import Column, DateTime, func
 from sqlmodel import Field, SQLModel
 
 
@@ -23,11 +24,19 @@ class BookBase(SQLModel):
 
 class Book(BookBase, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    user_id: int = Field(foreign_key="users.id", nullable=False, index=True)
+    created_at: datetime = Field(
+        sa_column=Column(DateTime(timezone=True), nullable=False, server_default=func.now())
+    )
 
 
 class BookCreate(BookBase):
     pass
+
+
+class BookRead(BookBase):
+    id: int
+    created_at: datetime
 
 
 class BookUpdate(SQLModel):

@@ -10,8 +10,8 @@ class BookRepository:
         session.refresh(book)
         return book
 
-    def list(self, session: Session) -> list[Book]:
-        statement = select(Book)
+    def list(self, session: Session, user_id: int) -> list[Book]:
+        statement = select(Book).where(Book.user_id == user_id)
         return session.exec(statement).all()
 
     def list_paginated(
@@ -21,10 +21,11 @@ class BookRepository:
         page: int,
         size: int,
         filters: BookFilters,
+        user_id: int,
     ):
         offset = (page - 1) * size
 
-        conditions = []
+        conditions = [Book.user_id == user_id]
 
         if filters.status:
             conditions.append(Book.status == filters.status)
@@ -36,10 +37,7 @@ class BookRepository:
             conditions.append(Book.title.ilike(f"%{filters.title}%"))
 
         # Query base (sem paginação)
-        statement = select(Book)
-
-        if conditions:
-            statement = statement.where(*conditions)
+        statement = select(Book).where(*conditions)
 
         # Contagem total usando subquery
         total = session.exec(select(func.count()).select_from(statement.subquery())).one()
@@ -67,8 +65,9 @@ class BookRepository:
 
         return items, total
 
-    def get_by_id(self, session: Session, book_id: int) -> Book | None:
-        return session.get(Book, book_id)
+    def get_by_id(self, session: Session, book_id: int, user_id: int) -> Book | None:
+        statement = select(Book).where(Book.id == book_id, Book.user_id == user_id)
+        return session.exec(statement).one_or_none()
 
     def update(self, session: Session, book: Book) -> Book:
         session.add(book)

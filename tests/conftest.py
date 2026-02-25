@@ -47,7 +47,7 @@ def auth_headers_fixture(client: TestClient):
         "/users/",
         json={
             "email": "test@example.com",
-            "password": "123456",
+            "password": "12345678",
         },
     )
 
@@ -56,7 +56,7 @@ def auth_headers_fixture(client: TestClient):
         "/users/token",
         data={
             "username": "test@example.com",
-            "password": "123456",
+            "password": "12345678",
         },
     )
 

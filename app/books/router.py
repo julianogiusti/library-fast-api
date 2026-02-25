@@ -7,7 +7,7 @@ from app.core.error_schema import ErrorResponse
 from app.users.dependencies import get_current_user
 from app.users.model import User
 
-from .model import Book, BookCreate, BookFilters, BookUpdate, Page
+from .model import BookCreate, BookFilters, BookRead, BookUpdate, Page
 from .service import BookService
 
 router = APIRouter(prefix="/books", tags=["Books"])
@@ -17,7 +17,7 @@ service = BookService()
 
 @router.post(
     "/",
-    response_model=Book,
+    response_model=BookRead,
     status_code=status.HTTP_201_CREATED,
     responses={
         422: {"model": ErrorResponse, "description": "Validation error"},
@@ -28,18 +28,19 @@ def create(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    return service.create_book(session, book)
+    return service.create_book(session, book, current_user)
 
 
 @router.get(
     "/",
-    response_model=Page[Book],
+    response_model=Page[BookRead],
     responses={
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
 def list_books(
     session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
     page: int = Query(1, ge=1),
     size: int = Query(10, ge=1, le=100),
     filters: BookFilters = Depends(),
@@ -49,24 +50,29 @@ def list_books(
         page=page,
         size=size,
         filters=filters,
+        user=current_user,
     )
 
 
 @router.get(
     "/{book_id}",
-    response_model=Book,
+    response_model=BookRead,
     responses={
         404: {"model": ErrorResponse, "description": "Book not found"},
         422: {"model": ErrorResponse, "description": "Validation error"},
     },
 )
-def get_book(book_id: int, session: Session = Depends(get_session)):
-    return service.get_book(session, book_id)
+def get_book(
+    book_id: int,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_user),
+):
+    return service.get_book(session, book_id, current_user)
 
 
 @router.put(
     "/{book_id}",
-    response_model=Book,
+    response_model=BookRead,
     responses={
         404: {"model": ErrorResponse, "description": "Book not found"},
         422: {"model": ErrorResponse, "description": "Validation error"},
@@ -78,7 +84,7 @@ def update_book(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    return service.update_book(session, book_id, book_update)
+    return service.update_book(session, book_id, book_update, current_user)
 
 
 @router.delete(
@@ -95,5 +101,5 @@ def delete_book(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    service.delete_book(session, book_id)
+    service.delete_book(session, book_id, current_user)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
